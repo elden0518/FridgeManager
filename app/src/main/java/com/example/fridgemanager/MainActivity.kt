@@ -109,7 +109,8 @@ fun FridgeManagerApp() {
                 HomeScreen(
                     viewModel = foodViewModel,
                     onAddItem = { navController.navigate(Screen.AddItem.createRoute()) },
-                    onEditItem = { id -> navController.navigate(Screen.AddItem.createRoute(id)) }
+                    onEditItem = { id -> navController.navigate(Screen.AddItem.createRoute(id)) },
+                    onOpenCamera = { navController.navigate("camera") }
                 )
             }
 

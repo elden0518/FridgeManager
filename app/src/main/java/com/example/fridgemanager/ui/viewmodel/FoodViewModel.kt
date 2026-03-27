@@ -86,6 +86,9 @@ class FoodViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
+    val aiApiKey: StateFlow<String> = prefs.aiApiKey
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     val statsState: StateFlow<StatsUiState> = combine(
         repository.getMonthlyStats(),
         repository.getCategoryDistribution(),

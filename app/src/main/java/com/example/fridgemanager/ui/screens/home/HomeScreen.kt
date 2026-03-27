@@ -33,7 +33,8 @@ import java.util.*
 fun HomeScreen(
     viewModel: FoodViewModel,
     onAddItem: () -> Unit,
-    onEditItem: (Long) -> Unit
+    onEditItem: (Long) -> Unit,
+    onOpenCamera: () -> Unit
 ) {
     val state by viewModel.homeState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -50,11 +51,23 @@ fun HomeScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddItem,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("添加食材") }
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SmallFloatingActionButton(
+                    onClick = onOpenCamera,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = "拍照识别")
+                }
+                ExtendedFloatingActionButton(
+                    onClick = onAddItem,
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text("添加食材") }
+                )
+            }
         }
     ) { padding ->
         Column(

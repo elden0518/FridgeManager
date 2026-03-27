@@ -39,8 +39,19 @@ fun SettingsScreen(viewModel: FoodViewModel) {
     var showAddCategoryDialog by remember { mutableStateOf(false) }
 
     // AI API Key
+    val savedApiKey by viewModel.aiApiKey.collectAsState()
     var apiKey by remember { mutableStateOf("") }
     var showApiKey by remember { mutableStateOf(false) }
+    var apiKeySaved by remember { mutableStateOf(false) }
+
+    // 首次加载时填入已保存的 Key
+    LaunchedEffect(savedApiKey) {
+        if (apiKey.isBlank() && savedApiKey.isNotBlank()) {
+            apiKey = savedApiKey
+        }
+    }
+    // 编辑时重置"已保存"状态
+    LaunchedEffect(apiKey) { apiKeySaved = false }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -134,10 +145,23 @@ fun SettingsScreen(viewModel: FoodViewModel) {
                         singleLine = true
                     )
                     Button(
-                        onClick = { viewModel.saveApiKey(apiKey) },
+                        onClick = {
+                            viewModel.saveApiKey(apiKey)
+                            apiKeySaved = true
+                        },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("保存")
+                        if (apiKeySaved) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("已保存")
+                        } else {
+                            Text("保存")
+                        }
                     }
                 }
             }
