@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local properties (contains SDK path, machine-specific)
+local.properties
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+.DS_Store
+
+# APKs and build outputs
+*.apk
+*.aab
+*.ap_
+
+# Keystore files (never commit these)
+*.jks
+*.keystore
+
+# Navigation editor generated files
+.navigation/
+
+# Proguard generated files
+/proguard/
+
+# Google services
+google-services.json
