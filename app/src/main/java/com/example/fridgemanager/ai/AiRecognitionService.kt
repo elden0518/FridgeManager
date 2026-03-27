@@ -34,7 +34,10 @@ class AiRecognitionService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val client = OkHttpClient.Builder()
-        .callTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(75, java.util.concurrent.TimeUnit.SECONDS)
+        .callTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
     private val gson = Gson()
@@ -82,9 +85,9 @@ class AiRecognitionService @Inject constructor(
         return try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 val bitmap = BitmapFactory.decodeStream(stream) ?: return@use null
-                val scaled = scaleBitmap(bitmap, 1024)
+                val scaled = scaleBitmap(bitmap, 768)
                 val baos = ByteArrayOutputStream()
-                scaled.compress(Bitmap.CompressFormat.JPEG, 85, baos)
+                scaled.compress(Bitmap.CompressFormat.JPEG, 75, baos)
                 Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
             }
         } catch (e: Exception) { null }
