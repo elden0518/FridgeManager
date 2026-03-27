@@ -100,7 +100,7 @@ class AiRecognitionService @Inject constructor(
 
     private fun buildRequestBody(base64Image: String, prompt: String): String {
         return gson.toJson(mapOf(
-            "model" to "qwen-vl-plus",
+            "model" to "qwen3.5-plus",
             "max_tokens" to 500,
             "messages" to listOf(
                 mapOf(

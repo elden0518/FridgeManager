@@ -122,7 +122,7 @@ fun SettingsScreen(viewModel: FoodViewModel) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "输入阿里云百炼 API Key 以启用拍照识别（模型：qwen-vl-plus）\n在 dashscope.console.aliyun.com 获取",
+                        "输入阿里云百炼 API Key 以启用拍照识别（模型：Qwen3.5-Plus）\n在 dashscope.console.aliyun.com 获取",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
