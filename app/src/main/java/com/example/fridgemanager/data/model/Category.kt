@@ -13,6 +13,7 @@ data class Category(
     companion object {
         val DEFAULT_CATEGORIES = listOf(
             Category(name = "蔬果",     emoji = "🥦", isDefault = true),
+            Category(name = "水果",     emoji = "🍎", isDefault = true),
             Category(name = "乳制品",   emoji = "🥛", isDefault = true),
             Category(name = "肉类",     emoji = "🥩", isDefault = true),
             Category(name = "零食",     emoji = "🍪", isDefault = true),

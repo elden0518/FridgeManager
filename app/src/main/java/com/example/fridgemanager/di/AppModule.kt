@@ -28,6 +28,7 @@ object AppModule {
     ): AppDatabase {
         lateinit var db: AppDatabase
         db = Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .addCallback(AppDatabase.buildCallback(scope) { db })
             .build()
         return db

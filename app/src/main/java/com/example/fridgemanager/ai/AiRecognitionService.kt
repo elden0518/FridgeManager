@@ -55,7 +55,7 @@ class AiRecognitionService @Inject constructor(
                   "name": "食品名称（如：纯牛奶、草莓、鸡蛋）",
                   "quantity": "规格或数量（如：250ml、1kg、6个，没有则为空）",
                   "expiry_info": "到期日或保质期原文（如：2025/12/01、保质期12个月，识别不到则为空）",
-                  "category": "推荐分类（蔬果/乳制品/肉类/零食/饮料/调料/冷冻食品/其他 之一）"
+                  "category": "推荐分类（蔬果/水果/乳制品/肉类/零食/饮料/调料/冷冻食品/其他 之一）"
                 }
                 只输出JSON，不要有任何其他文字。
             """.trimIndent()
