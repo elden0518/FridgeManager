@@ -25,7 +25,7 @@ data class RecognitionResult(
 )
 
 sealed class AiResult {
-    data class Success(val result: RecognitionResult) : AiResult()
+    data class Success(val results: List<RecognitionResult>) : AiResult()
     data class Error(val message: String) : AiResult()
 }
 
@@ -50,14 +50,16 @@ class AiRecognitionService @Inject constructor(
                 ?: return@withContext AiResult.Error("无法读取图片")
 
             val prompt = """
-                请识别图片中的食品/食材包装或冰箱内容，以JSON格式返回以下字段：
-                {
-                  "name": "食品名称（如：纯牛奶、草莓、鸡蛋）",
-                  "quantity": "规格或数量（如：250ml、1kg、6个，没有则为空）",
-                  "expiry_info": "到期日或保质期原文（如：2025/12/01、保质期12个月，识别不到则为空）",
-                  "category": "推荐分类（蔬果/水果/乳制品/肉类/零食/饮料/调料/冷冻食品/其他 之一）"
-                }
-                只输出JSON，不要有任何其他文字。
+                请识别图片中所有可见的食品/食材（包装或实物），以JSON数组格式返回，每项包含：
+                [
+                  {
+                    "name": "食品名称（如：纯牛奶、草莓、鸡蛋）",
+                    "quantity": "规格或数量（如：250ml、1kg、6个，没有则为空字符串）",
+                    "expiry_info": "到期日或保质期原文（如：2025/12/01、保质期12个月，识别不到则为空字符串）",
+                    "category": "推荐分类（蔬果/水果/乳制品/肉类/零食/饮料/调料/冷冻食品/其他 之一）"
+                  }
+                ]
+                最多返回8项。只输出JSON数组，不要有任何其他文字。
             """.trimIndent()
 
             val requestBody = buildRequestBody(base64Image, prompt)
@@ -133,15 +135,21 @@ class AiRecognitionService @Inject constructor(
                 .removeSuffix("```")
                 .trim()
 
-            val json = gson.fromJson(content, JsonObject::class.java)
-            AiResult.Success(
+            val jsonArray = gson.fromJson(content, com.google.gson.JsonArray::class.java)
+            val results = jsonArray.mapNotNull { element ->
+                val json = element.asJsonObject
+                val name = json.get("name")?.asString ?: ""
+                if (name.isBlank()) return@mapNotNull null
                 RecognitionResult(
-                    name = json.get("name")?.asString ?: "",
+                    name = name,
                     quantity = json.get("quantity")?.asString ?: "",
                     expiryInfo = json.get("expiry_info")?.asString ?: "",
                     categoryHint = json.get("category")?.asString ?: "其他"
                 )
-            )
+            }
+
+            if (results.isEmpty()) AiResult.Error("未识别到食材")
+            else AiResult.Success(results)
         } catch (e: Exception) {
             AiResult.Error("解析识别结果失败：${e.message}")
         }

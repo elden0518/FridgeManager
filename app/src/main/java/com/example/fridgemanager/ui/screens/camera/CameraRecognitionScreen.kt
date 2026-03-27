@@ -55,8 +55,8 @@ fun CameraRecognitionScreen(
     }
 
     // 识别完成后自动跳转确认页
-    LaunchedEffect(uiState.recognitionResult) {
-        if (uiState.recognitionResult != null && !uiState.isLoading) {
+    LaunchedEffect(uiState.recognitionResults) {
+        if (uiState.recognitionResults.isNotEmpty() && !uiState.isLoading) {
             onNavigateToConfirm()
         }
     }

@@ -35,6 +35,9 @@ interface FoodItemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: FoodItem): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<FoodItem>): List<Long>
+
     @Update
     suspend fun update(item: FoodItem)
 

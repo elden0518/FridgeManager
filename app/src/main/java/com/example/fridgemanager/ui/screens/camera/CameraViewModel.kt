@@ -18,7 +18,7 @@ import javax.inject.Inject
 data class CameraUiState(
     val selectedImageUri: Uri? = null,
     val isLoading: Boolean = false,
-    val recognitionResult: RecognitionResult? = null,
+    val recognitionResults: List<RecognitionResult> = emptyList(),
     val errorMessage: String? = null
 )
 
@@ -42,7 +42,7 @@ class CameraViewModel @Inject constructor(
         when (val result = aiService.recognizeImage(uri, apiKey)) {
             is AiResult.Success -> _uiState.value = _uiState.value.copy(
                 isLoading = false,
-                recognitionResult = result.result
+                recognitionResults = result.results
             )
             is AiResult.Error -> _uiState.value = _uiState.value.copy(
                 isLoading = false,

@@ -22,30 +22,14 @@ import com.example.fridgemanager.ui.navigation.bottomNavItems
 import com.example.fridgemanager.ui.screens.additem.AddItemScreen
 import com.example.fridgemanager.ui.screens.camera.CameraRecognitionScreen
 import com.example.fridgemanager.ui.screens.camera.CameraViewModel
+import com.example.fridgemanager.ui.screens.camera.MultiItemConfirmScreen
 import com.example.fridgemanager.ui.screens.home.HomeScreen
 import com.example.fridgemanager.ui.screens.settings.SettingsScreen
 import com.example.fridgemanager.ui.screens.stats.StatsScreen
 import com.example.fridgemanager.ui.theme.FridgeManagerTheme
 import com.example.fridgemanager.ui.viewmodel.FoodViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
-/** 尝试将 AI 识别的到期信息文本解析为 Date，支持常见格式 */
-private fun parseExpiryInfo(text: String): Date? {
-    if (text.isBlank()) return null
-    val formats = listOf(
-        "yyyy/MM/dd", "yyyy-MM-dd", "yyyy.MM.dd",
-        "MM/dd/yyyy", "dd/MM/yyyy", "yyyyMMdd"
-    )
-    for (fmt in formats) {
-        try {
-            return SimpleDateFormat(fmt, Locale.CHINA).apply { isLenient = false }.parse(text)
-        } catch (_: Exception) { }
-    }
-    return null
-}
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -130,31 +114,11 @@ fun FridgeManagerApp() {
                 })
             ) { backStackEntry ->
                 val itemId = backStackEntry.arguments?.getLong("itemId") ?: -1L
-
-                // 如果从拍照识别过来，预填识别结果
-                val recognitionResult = cameraViewModel.uiState.collectAsState().value.recognitionResult
-                val prefill = recognitionResult?.let { result ->
-                    // 尝试将识别到的日期文本解析为 Date，失败则放入备注
-                    val parsedDate = parseExpiryInfo(result.expiryInfo)
-                    val remarkText = if (parsedDate == null && result.expiryInfo.isNotBlank())
-                        "识别到期信息：${result.expiryInfo}" else ""
-                    com.example.fridgemanager.data.model.FoodItem(
-                        name = result.name,
-                        quantity = result.quantity,
-                        expiryDate = parsedDate,
-                        remark = remarkText,
-                        imageUri = cameraViewModel.uiState.value.selectedImageUri?.toString()
-                    )
-                }
-
                 AddItemScreen(
                     viewModel = foodViewModel,
                     itemId = itemId,
-                    prefillItem = prefill,
-                    onNavigateBack = {
-                        cameraViewModel.clearResult()
-                        navController.popBackStack()
-                    }
+                    prefillItem = null,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 
@@ -163,8 +127,21 @@ fun FridgeManagerApp() {
                     cameraViewModel = cameraViewModel,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToConfirm = {
-                        navController.navigate(Screen.AddItem.createRoute()) {
+                        navController.navigate("confirm") {
                             popUpTo("camera") { inclusive = false }
+                        }
+                    }
+                )
+            }
+
+            composable("confirm") {
+                MultiItemConfirmScreen(
+                    cameraViewModel = cameraViewModel,
+                    foodViewModel = foodViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onDone = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
                         }
                     }
                 )

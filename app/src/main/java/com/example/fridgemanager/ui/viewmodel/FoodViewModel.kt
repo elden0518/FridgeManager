@@ -116,6 +116,11 @@ class FoodViewModel @Inject constructor(
         _uiEvent.emit(UiEvent.ShowSnackbar("「${item.name}」已添加"))
     }
 
+    fun addItems(items: List<FoodItem>) = viewModelScope.launch {
+        repository.addItems(items)
+        _uiEvent.emit(UiEvent.ShowSnackbar("已添加 ${items.size} 项食材"))
+    }
+
     fun updateItem(item: FoodItem) = viewModelScope.launch {
         repository.updateItem(item)
     }

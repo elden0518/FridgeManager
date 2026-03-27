@@ -31,6 +31,8 @@ class FoodRepository @Inject constructor(
 
     suspend fun addItem(item: FoodItem): Long = foodItemDao.insert(item)
 
+    suspend fun addItems(items: List<FoodItem>): List<Long> = foodItemDao.insertAll(items)
+
     suspend fun updateItem(item: FoodItem) = foodItemDao.update(item)
 
     suspend fun markConsumed(id: Long) = foodItemDao.updateStatus(id, FoodStatus.CONSUMED)
