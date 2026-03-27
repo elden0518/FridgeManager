@@ -37,10 +37,7 @@ class UserPreferences @Inject constructor(
     }
 
     val aiApiKey: Flow<String> = context.dataStore.data.map { prefs ->
-        val stored = prefs[AI_API_KEY]?.takeIf { it.isNotBlank() }
-        val compiled = com.example.fridgemanager.BuildConfig.DASHSCOPE_API_KEY
-            .takeIf { it.startsWith("sk-") }   // 只使用格式合法的编译期 key
-        stored ?: compiled ?: ""
+        prefs[AI_API_KEY]?.takeIf { it.isNotBlank() } ?: ""
     }
 
     suspend fun updateReminderSettings(settings: ReminderSettings) {

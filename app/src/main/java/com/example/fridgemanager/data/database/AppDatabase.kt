@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 @Database(
     entities = [FoodItem::class, Category::class],
     version = 2,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

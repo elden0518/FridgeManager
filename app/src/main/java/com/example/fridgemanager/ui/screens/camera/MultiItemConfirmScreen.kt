@@ -1,5 +1,6 @@
 package com.example.fridgemanager.ui.screens.camera
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,6 +15,7 @@ import com.example.fridgemanager.data.model.Category
 import com.example.fridgemanager.data.model.FoodItem
 import com.example.fridgemanager.ui.viewmodel.FoodViewModel
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -33,6 +35,7 @@ class ConfirmItemState(
 
 private fun parseDate(text: String): Date? {
     if (text.isBlank()) return null
+    // 尝试固定日期格式
     val formats = listOf(
         "yyyy/MM/dd", "yyyy-MM-dd", "yyyy.MM.dd",
         "MM/dd/yyyy", "dd/MM/yyyy", "yyyyMMdd"
@@ -41,6 +44,19 @@ private fun parseDate(text: String): Date? {
         try {
             return SimpleDateFormat(fmt, Locale.CHINA).apply { isLenient = false }.parse(text)
         } catch (_: Exception) { }
+    }
+    // 尝试保质期相对时长，如"保质期12个月"、"6天"、"2年"
+    val durationRegex = Regex("""(?:保质期)?(\d+)\s*(个月|月|天|日|年)""")
+    durationRegex.find(text)?.let { match ->
+        val n = match.groupValues[1].toInt()
+        val unit = match.groupValues[2]
+        val cal = Calendar.getInstance()
+        when (unit) {
+            "年"       -> cal.add(Calendar.YEAR, n)
+            "个月", "月" -> cal.add(Calendar.MONTH, n)
+            "天", "日"  -> cal.add(Calendar.DAY_OF_YEAR, n)
+        }
+        return cal.time
     }
     return null
 }
@@ -84,6 +100,11 @@ fun MultiItemConfirmScreen(
     }
 
     val checkedCount = editStates.count { it.checked }
+
+    BackHandler {
+        cameraViewModel.clearResult()
+        onNavigateBack()
+    }
 
     Scaffold(
         topBar = {
@@ -151,7 +172,7 @@ fun MultiItemConfirmScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            itemsIndexed(editStates) { _, state ->
+            itemsIndexed(editStates, key = { index, _ -> index }) { _, state ->
                 ConfirmItemCard(state = state, categories = categories)
             }
             item { Spacer(Modifier.height(8.dp)) }

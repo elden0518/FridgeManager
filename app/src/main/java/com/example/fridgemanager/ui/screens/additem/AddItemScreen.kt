@@ -36,6 +36,7 @@ fun AddItemScreen(
     var remark   by remember { mutableStateOf(prefillItem?.remark ?: "") }
     var selectedCategoryId by remember { mutableStateOf(prefillItem?.categoryId) }
     var expiryDate by remember { mutableStateOf(prefillItem?.expiryDate) }
+    var localImageUri by remember { mutableStateOf(prefillItem?.imageUri) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showCategoryDropdown by remember { mutableStateOf(false) }
 
@@ -52,6 +53,7 @@ fun AddItemScreen(
                 remark = item.remark
                 selectedCategoryId = item.categoryId
                 expiryDate = item.expiryDate
+                localImageUri = item.imageUri
             }
         }
     }
@@ -77,7 +79,7 @@ fun AddItemScreen(
                                     categoryId = selectedCategoryId,
                                     expiryDate = expiryDate,
                                     remark = remark.trim(),
-                                    imageUri = prefillItem?.imageUri
+                                    imageUri = localImageUri
                                 )
                             } else {
                                 FoodItem(
@@ -86,7 +88,7 @@ fun AddItemScreen(
                                     categoryId = selectedCategoryId,
                                     expiryDate = expiryDate,
                                     remark = remark.trim(),
-                                    imageUri = prefillItem?.imageUri
+                                    imageUri = localImageUri
                                 )
                             }
                             if (isEditing) viewModel.updateItem(item) else viewModel.addItem(item)

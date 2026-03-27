@@ -2,8 +2,11 @@ package com.example.fridgemanager.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.example.fridgemanager.MainActivity
 import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import com.example.fridgemanager.R
@@ -83,12 +86,21 @@ class ExpiryReminderWorker @AssistedInject constructor(
             "· ${item.name}  ${daysText(item.daysUntilExpiry)}"
         }
 
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle("冰箱管家 · 临期提醒")
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 

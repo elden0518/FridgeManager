@@ -1,5 +1,7 @@
 package com.example.fridgemanager.ui.screens.home
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,10 +26,13 @@ import com.example.fridgemanager.ui.theme.expiryColor
 import com.example.fridgemanager.ui.viewmodel.FoodViewModel
 import com.example.fridgemanager.ui.viewmodel.HomeUiState
 import com.example.fridgemanager.ui.viewmodel.UiEvent
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     viewModel: FoodViewModel,
@@ -38,6 +42,16 @@ fun HomeScreen(
 ) {
     val state by viewModel.homeState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Android 13+ 需要动态申请通知权限
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val notifPermission = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+        LaunchedEffect(Unit) {
+            if (!notifPermission.status.isGranted) {
+                notifPermission.launchPermissionRequest()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -153,7 +167,7 @@ private fun FoodSearchBar(query: String, onQueryChange: (String) -> Unit, modifi
 private fun ExpiryBanner(items: List<FoodItem>, modifier: Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -163,14 +177,14 @@ private fun ExpiryBanner(items: List<FoodItem>, modifier: Modifier) {
             Icon(
                 Icons.Default.Warning,
                 contentDescription = null,
-                tint = Color(0xFFFF9800),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = "有 ${items.size} 件食材即将过期：${items.take(3).joinToString("、") { it.name }}${if (items.size > 3) " 等" else ""}",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFE65100)
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }

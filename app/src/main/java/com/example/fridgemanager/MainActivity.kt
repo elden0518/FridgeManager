@@ -138,7 +138,10 @@ fun FridgeManagerApp() {
                 MultiItemConfirmScreen(
                     cameraViewModel = cameraViewModel,
                     foodViewModel = foodViewModel,
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = {
+                        cameraViewModel.clearResult()
+                        navController.popBackStack()
+                    },
                     onDone = {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = false }

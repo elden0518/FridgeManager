@@ -70,14 +70,15 @@ class AiRecognitionService @Inject constructor(
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
                 .build()
 
-            val response = client.newCall(request).execute()
-            val bodyStr = response.body?.string() ?: return@withContext AiResult.Error("响应为空")
+            client.newCall(request).execute().use { response ->
+                val bodyStr = response.body?.string() ?: return@withContext AiResult.Error("响应为空")
 
-            if (!response.isSuccessful) {
-                return@withContext AiResult.Error("API 错误 ${response.code}: ${bodyStr.take(200)}")
+                if (!response.isSuccessful) {
+                    return@withContext AiResult.Error("API 错误 ${response.code}: ${bodyStr.take(200)}")
+                }
+
+                parseResponse(bodyStr)
             }
-
-            parseResponse(bodyStr)
         } catch (e: Exception) {
             AiResult.Error("识别失败：${e.message}")
         }
