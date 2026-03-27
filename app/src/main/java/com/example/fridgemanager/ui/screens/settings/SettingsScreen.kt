@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.fridgemanager.data.model.Category
 import com.example.fridgemanager.data.preferences.ReminderSettings
@@ -38,20 +37,13 @@ fun SettingsScreen(viewModel: FoodViewModel) {
     // 分类管理
     var showAddCategoryDialog by remember { mutableStateOf(false) }
 
-    // AI API Key
+    // AI API Key（write-only：已保存的 key 只显示掩码，不回显原文）
     val savedApiKey by viewModel.aiApiKey.collectAsState()
-    var apiKey by remember { mutableStateOf("") }
-    var showApiKey by remember { mutableStateOf(false) }
+    var newApiKey by remember { mutableStateOf("") }
+    var isReplacingApiKey by remember { mutableStateOf(false) }
     var apiKeySaved by remember { mutableStateOf(false) }
-
-    // 首次加载时填入已保存的 Key
-    LaunchedEffect(savedApiKey) {
-        if (apiKey.isBlank() && savedApiKey.isNotBlank()) {
-            apiKey = savedApiKey
-        }
-    }
-    // 编辑时重置"已保存"状态
-    LaunchedEffect(apiKey) { apiKeySaved = false }
+    // 输入时重置"已保存"状态
+    LaunchedEffect(newApiKey) { apiKeySaved = false }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -122,45 +114,84 @@ fun SettingsScreen(viewModel: FoodViewModel) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "输入阿里云百炼 API Key 以启用拍照识别（模型：Qwen3.5-Plus）\n在 dashscope.console.aliyun.com 获取",
+                        "阿里云百炼 API Key（模型：Qwen3.5-Plus）\n在 dashscope.console.aliyun.com 获取",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedTextField(
-                        value = apiKey,
-                        onValueChange = { apiKey = it },
-                        label = { Text("API Key") },
-                        modifier = Modifier.fillMaxWidth(),
-                        visualTransformation = if (showApiKey) VisualTransformation.None
-                        else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { showApiKey = !showApiKey }) {
-                                Icon(
-                                    if (showApiKey) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = null
+
+                    val keyIsSaved = savedApiKey.isNotBlank() && !isReplacingApiKey
+                    if (keyIsSaved) {
+                        // 已保存：只显示掩码，不回显原文
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Key,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "已配置",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    maskApiKey(savedApiKey),
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        singleLine = true
-                    )
-                    Button(
-                        onClick = {
-                            viewModel.saveApiKey(apiKey)
-                            apiKeySaved = true
-                        },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        if (apiKeySaved) {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text("已保存")
-                        } else {
-                            Text("保存")
+                            TextButton(onClick = {
+                                isReplacingApiKey = true
+                                newApiKey = ""
+                            }) {
+                                Text("重新设置")
+                            }
+                        }
+                    } else {
+                        // 未配置或正在重新设置：输入框，始终遮罩
+                        OutlinedTextField(
+                            value = newApiKey,
+                            onValueChange = { newApiKey = it },
+                            label = { Text("输入新的 API Key") },
+                            modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            singleLine = true
+                        )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            if (savedApiKey.isNotBlank()) {
+                                TextButton(onClick = {
+                                    isReplacingApiKey = false
+                                    newApiKey = ""
+                                }) { Text("取消") }
+                            }
+                            Button(
+                                onClick = {
+                                    viewModel.saveApiKey(newApiKey)
+                                    apiKeySaved = true
+                                    isReplacingApiKey = false
+                                },
+                                enabled = newApiKey.isNotBlank()
+                            ) {
+                                if (apiKeySaved) {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("已保存")
+                                } else {
+                                    Text("保存")
+                                }
+                            }
                         }
                     }
                 }
@@ -285,4 +316,11 @@ private fun AnimatedVisibilityWrapper(visible: Boolean, content: @Composable () 
     androidx.compose.animation.AnimatedVisibility(visible = visible) {
         content()
     }
+}
+
+/** 将 API Key 处理为掩码显示，如 sk-****...abcd，不暴露原文 */
+private fun maskApiKey(key: String): String {
+    if (key.length <= 8) return "****"
+    val prefix = if (key.startsWith("sk-")) "sk-" else key.take(3)
+    return "$prefix****...${key.takeLast(4)}"
 }
